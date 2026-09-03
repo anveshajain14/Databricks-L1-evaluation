@@ -1,0 +1,74 @@
+resources:
+  jobs:
+    data_engineering_workflow:
+      name: data engineering workflow
+      tasks:
+        - task_key: bronze_ingestion
+          notebook_task:
+            notebook_path: /Workspace/Users/anveshajain@cyntexa.com/Databricks-L1-evaluation/Bronze/ingestion-bronze
+            source: WORKSPACE
+          min_retry_interval_millis: 900000
+          disable_auto_optimization: true
+        - task_key: Silver_branch
+          depends_on:
+            - task_key: bronze_ingestion
+          notebook_task:
+            notebook_path: /Workspace/Users/anveshajain@cyntexa.com/Databricks-L1-evaluation/silver/clean_branches
+            source: WORKSPACE
+          min_retry_interval_millis: 900000
+          disable_auto_optimization: true
+        - task_key: Silver_customer
+          depends_on:
+            - task_key: bronze_ingestion
+          notebook_task:
+            notebook_path: /Workspace/Users/anveshajain@cyntexa.com/Databricks-L1-evaluation/silver/clean_customers
+            source: WORKSPACE
+          min_retry_interval_millis: 900000
+          disable_auto_optimization: true
+        - task_key: Silver_account
+          depends_on:
+            - task_key: Silver_branch
+            - task_key: Silver_customer_scd
+          notebook_task:
+            notebook_path: /Workspace/Users/anveshajain@cyntexa.com/Databricks-L1-evaluation/silver/clean_accounts
+            source: WORKSPACE
+          min_retry_interval_millis: 900000
+          disable_auto_optimization: true
+        - task_key: Silver_transactions
+          depends_on:
+            - task_key: Silver_account
+          notebook_task:
+            notebook_path: /Workspace/Users/anveshajain@cyntexa.com/Databricks-L1-evaluation/silver/clean_transactions
+            source: WORKSPACE
+          min_retry_interval_millis: 900000
+          disable_auto_optimization: true
+        - task_key: Gold_star_schema
+          depends_on:
+            - task_key: Silver_transactions
+          notebook_task:
+            notebook_path: /Workspace/Users/anveshajain@cyntexa.com/Databricks-L1-evaluation/gold/star_schema
+            source: WORKSPACE
+          min_retry_interval_millis: 900000
+          disable_auto_optimization: true
+        - task_key: Gold_kpis
+          depends_on:
+            - task_key: Gold_star_schema
+          notebook_task:
+            notebook_path: /Workspace/Users/anveshajain@cyntexa.com/Databricks-L1-evaluation/gold/gold_KPIs
+            source: WORKSPACE
+          min_retry_interval_millis: 900000
+          disable_auto_optimization: true
+        - task_key: Silver_customer_scd
+          depends_on:
+            - task_key: Silver_customer
+          notebook_task:
+            notebook_path: /Workspace/Users/anveshajain@cyntexa.com/Databricks-L1-evaluation/silver/customers_scd
+            source: WORKSPACE
+          min_retry_interval_millis: 900000
+          disable_auto_optimization: true
+      queue:
+        enabled: true
+      parameters:
+        - name: catalog
+          default: dev
+      performance_target: PERFORMANCE_OPTIMIZED
